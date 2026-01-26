@@ -1,6 +1,6 @@
 {
 	"name": "event-scan-worker-client-xxx",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"private": true,
 	"scripts": {
 		"deploy": "wrangler deploy",
