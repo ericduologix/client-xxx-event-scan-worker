@@ -1,6 +1,6 @@
 {
 	"$schema": "node_modules/wrangler/config-schema.json",
-	"name": "event-scan-worker-client-xxx",
+	"name": "client-xxx-event-scan-worker",
 	"main": "src/index.js",
 	"compatibility_date": "2025-09-27",
 	"observability": {
