@@ -1,4 +1,5 @@
 import { json } from '../../lib/json.js';
+import { appVersion } from '../../lib/appVersion.js';
 
 export async function handleMetaGet(request, env) {
 	return json({
@@ -7,10 +8,9 @@ export async function handleMetaGet(request, env) {
 			id: env.CLIENT_ID,
 			name: env.CLIENT_NAME,
 		},
-		build: {
-			commit: env.DEPLOY_COMMIT_SHA,
-			branch: env.DEPLOY_BRANCH,
-			buildId: env.DEPLOY_BUILD_UUID,
+		appVersion: {
+			version: appVersion.version,
+			timestamp: appVersion.timestamp,
 		},
 		ts: new Date().toISOString(),
 	});

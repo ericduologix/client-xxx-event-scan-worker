@@ -1,10 +1,12 @@
 {
 	"name": "event-scan-worker-client-xxx",
-	"version": "1.0.12",
+	"version": "1.0.13",
 	"private": true,
 	"scripts": {
-		"deploy": "wrangler deploy",
-		"dev": "wrangler dev",
+		"deploy": "wrangler deploy --config wrangler.json",
+		"dev": "wrangler dev --config wrangler.json",
+		"d1:list": "wrangler d1 list",
+		"d1:exec": "wrangler d1 execute --config wrangler.json",
 		"start": "wrangler dev",
 		"test": "vitest"
 	},

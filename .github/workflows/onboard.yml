@@ -1,18 +1,15 @@
 name: Onboard Client (D1 Setup)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
-    contents: write
-
+  contents: write
 
 jobs:
   setup-d1:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
 
@@ -21,66 +18,99 @@ jobs:
           node-version: 20
 
       - name: Install Wrangler
-        run: npm install -g wrangler@4.60.0
+        run: npm install -g wrangler@4.61.1
 
+      # ----------------------------------------
+      # Resolve DB name from wrangler.json
+      # ----------------------------------------
+      - name: Read DB name from wrangler.json
+        id: cfg
+        run: |
+          set -euo pipefail
+          DB_NAME="$(node -e "const c=require('./wrangler.json'); const d=c.d1_databases?.find(x=>x.binding==='DB'); if(!d) process.exit(1); process.stdout.write(d.database_name)")"
+          echo "db_name=$DB_NAME" >> "$GITHUB_OUTPUT"
+          echo "Using DB name: $DB_NAME"
+
+      # ----------------------------------------
+      # Create or resolve D1 database
+      # ----------------------------------------
       - name: Ensure D1 database exists and capture UUID
         id: d1
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          DB_NAME: ${{ steps.cfg.outputs.db_name }}
         run: |
           set -euo pipefail
-          DB_NAME="client-xxx-event-scan-db"
 
-          # If it already exists, use its UUID; otherwise create it and then read UUID.
-          if wrangler d1 list --json | node -e "process.exit(JSON.parse(require('fs').readFileSync(0,'utf8')).some(d=>d.name==='${DB_NAME}')?0:1)"; then
+          if wrangler d1 list --json | node -e "const a=JSON.parse(require('fs').readFileSync(0)); process.exit(a.some(d=>d.name==='${DB_NAME}')?0:1)"; then
             echo "D1 exists: $DB_NAME"
           else
             echo "Creating D1: $DB_NAME"
             wrangler d1 create "$DB_NAME"
           fi
 
-          DB_ID="$(wrangler d1 list --json | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8')).find(x=>x.name==='${DB_NAME}'); if(!d){process.exit(2)}; process.stdout.write(d.uuid || d.id || '')")"
+          DB_ID="$(wrangler d1 list --json | node -e "const a=JSON.parse(require('fs').readFileSync(0)); const d=a.find(x=>x.name==='${DB_NAME}'); if(!d)process.exit(2); process.stdout.write(d.uuid||d.id)")"
 
           if [ -z "$DB_ID" ]; then
-            echo "Failed to resolve DB UUID for $DB_NAME"
+            echo "Failed to resolve DB UUID"
             exit 3
           fi
 
           echo "db_id=$DB_ID" >> "$GITHUB_OUTPUT"
           echo "Resolved DB UUID: $DB_ID"
 
-      - name: Write database_id into wrangler.toml
+      # ----------------------------------------
+      # Write database_id into wrangler.json (idempotent)
+      # ----------------------------------------
+      - name: Write database_id into wrangler.json
+        id: write
         env:
           DB_ID: ${{ steps.d1.outputs.db_id }}
         run: |
           set -euo pipefail
+          node <<'NODE'
+          const fs = require('fs');
 
-          # Ensure wrangler.toml has database_id line (idempotent)
-          if grep -q '^database_id\s*=' wrangler.toml; then
-            sed -i.bak "s/^database_id\s*=.*$/database_id = \"${DB_ID}\"/" wrangler.toml
-          else
-            # Insert after database_name line
-            awk -v id="$DB_ID" '
-              {print}
-              $0 ~ /^database_name\s*=/ {print "database_id = \"" id "\""}
-            ' wrangler.toml > wrangler.toml.tmp && mv wrangler.toml.tmp wrangler.toml
-          fi
+          const path = 'wrangler.json';
+          const cfg = JSON.parse(fs.readFileSync(path,'utf8'));
 
-          echo "----- wrangler.toml (after) -----"
-          cat wrangler.toml
+          const db = cfg.d1_databases.find(d => d.binding === 'DB');
+          if (!db) throw new Error('No DB binding found');
 
+          const before = db.database_id || '';
+          db.database_id = process.env.DB_ID;
+
+          fs.writeFileSync(path, JSON.stringify(cfg, null, 2) + "\n");
+
+          const changed = before !== db.database_id;
+          fs.writeFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`, { flag: 'a' });
+
+          console.log("DB ID before:", before || "(empty)");
+          console.log("DB ID after :", db.database_id);
+          NODE
+
+          echo "----- wrangler.json -----"
+          cat wrangler.json
+
+      # ----------------------------------------
+      # Apply migrations
+      # ----------------------------------------
       - name: Apply D1 migrations
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-        run: wrangler d1 migrations apply DB --remote --config ./wrangler.toml
+        run: wrangler d1 migrations apply DB --remote --config ./wrangler.json
 
-      - name: Commit wrangler.toml with database_id back to repo
+      # ----------------------------------------
+      # Commit only if changed
+      # ----------------------------------------
+      - name: Commit wrangler.json back to repo
+        if: steps.write.outputs.changed == 'true'
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add wrangler.toml
-          git commit -m "Bootstrap D1 database_id for DB binding" || exit 0
+          git add wrangler.json
+          git commit -m "Onboard: bind D1 database_id"
           git push
