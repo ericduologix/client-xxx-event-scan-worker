@@ -1,6 +1,6 @@
 export const appVersion = {
-	version: '1.0.13',
-	timestamp: '2025-08-05T18:45:20Z',
+	version: '1.0.14',
+	timestamp: '2026-02-01T05:28:48.380Z ',
 };
 
 // Browser-only: keep your existing global
