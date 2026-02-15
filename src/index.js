@@ -1,27 +1,46 @@
-import { json } from './lib/json.js';
-
+import { handleAttemptsPost } from './routes/attempts/post.js';
+import { handleAttemptsGet } from './routes/attempts/get.js';
+import { handleAttemptsWithIssuesGet } from './routes/attempts/with-issues.get.js';
+import { handleIssuesPost } from './routes/issues/post.js';
 import { handleMetaGet } from './routes/meta/get.js';
-import { handleLogPost } from './routes/log/post.js';
-import { handleLogGet } from './routes/log/get.js';
 
 export default {
-	async fetch(request, env, ctx) {
+	async fetch(request, env) {
 		const url = new URL(request.url);
+		const { pathname } = url;
 
-		// META
-		if (url.pathname === '/v1/meta' && request.method === 'GET') {
+		// ----------------------------
+		// Attempts
+		// ----------------------------
+
+		if (request.method === 'POST' && pathname === '/attempts') {
+			return handleAttemptsPost(request, env);
+		}
+
+		if (request.method === 'GET' && pathname === '/attempts') {
+			return handleAttemptsGet(request, env);
+		}
+
+		if (request.method === 'GET' && pathname === '/attempts-with-issues') {
+			return handleAttemptsWithIssuesGet(request, env);
+		}
+
+		// ----------------------------
+		// Issues
+		// ----------------------------
+
+		if (request.method === 'POST' && pathname === '/issues') {
+			return handleIssuesPost(request, env);
+		}
+
+		// ----------------------------
+		// Meta
+		// ----------------------------
+
+		if (request.method === 'GET' && pathname === '/meta') {
 			return handleMetaGet(request, env);
 		}
 
-		// LOG
-		if (url.pathname === '/v1/log' && request.method === 'POST') {
-			return handleLogPost(request, env);
-		}
-
-		if (url.pathname === '/v1/log' && request.method === 'GET') {
-			return handleLogGet(request, env);
-		}
-
-		return json({ ok: false, error: 'not_found' }, 404);
+		return new Response('Not Found', { status: 404 });
 	},
 };

@@ -1,0 +1,68 @@
+[
+  {
+    "attemptId": "att-seed-0003",
+    "clientId": "client-456",
+    "propertyId": "prop-001",
+    "session": "sess-seed-001",
+    "validatedEventName": "add-to-cart.pdp",
+    "issueType": "schema",
+    "keyName": "product.productId",
+    "timestamp": "2026-02-15T14:02:33.009Z",
+    "date": "2026-02-15"
+  },
+  {
+    "attemptId": "att-seed-0003",
+    "clientId": "client-456",
+    "propertyId": "prop-001",
+    "session": "sess-seed-001",
+    "validatedEventName": "add-to-cart.pdp",
+    "issueType": "type",
+    "keyName": "product.price",
+    "timestamp": "2026-02-15T14:02:33.009Z",
+    "date": "2026-02-15"
+  },
+  {
+    "attemptId": "att-seed-0007",
+    "clientId": "client-456",
+    "propertyId": "prop-003",
+    "session": "sess-seed-002",
+    "validatedEventName": "orders.click.view.top-nav",
+    "issueType": "missing",
+    "keyName": "user.uuid",
+    "timestamp": "2026-02-15T15:12:49.901Z",
+    "date": "2026-02-15"
+  },
+  {
+    "attemptId": "att-seed-0010",
+    "clientId": "client-456",
+    "propertyId": "prop-002",
+    "session": "sess-seed-003",
+    "validatedEventName": "checkout.payment.submit",
+    "issueType": "enum",
+    "keyName": "payment.method",
+    "timestamp": "2026-02-15T16:00:03.333Z",
+    "date": "2026-02-15"
+  },
+  {
+    "attemptId": "att-seed-0010",
+    "clientId": "client-456",
+    "propertyId": "prop-002",
+    "session": "sess-seed-003",
+    "validatedEventName": "checkout.payment.submit",
+    "issueType": "schema",
+    "keyName": "order.total",
+    "timestamp": "2026-02-15T16:00:03.333Z",
+    "date": "2026-02-15"
+  },
+  {
+    "attemptId": "att-seed-0010",
+    "clientId": "client-456",
+    "propertyId": "prop-002",
+    "session": "sess-seed-003",
+    "validatedEventName": "checkout.payment.submit",
+    "issueType": "missing",
+    "keyName": "context.section",
+    "timestamp": "2026-02-15T16:00:03.333Z",
+    "date": "2026-02-15"
+  }
+]

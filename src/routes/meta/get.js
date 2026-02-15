@@ -1,5 +1,5 @@
 import { json } from '../../lib/json.js';
-import { appVersion } from '../../lib/appVersion.js';
+import { appVersion } from '../../../lib/appVersion.js';
 
 export async function handleMetaGet(request, env) {
 	return json({

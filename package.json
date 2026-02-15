@@ -2,6 +2,7 @@
 	"name": "event-scan-worker-client-xxx",
 	"version": "1.0.14",
 	"private": true,
+	"type":"module",
 	"scripts": {
 		"deploy": "wrangler deploy --config wrangler.json",
 		"dev": "wrangler dev --config wrangler.json",
